@@ -1,9 +1,10 @@
 #!/usr/bin/python3
 import requests, argparse, time
 
+
 ################################################################################
 # Titulo    : Directory Finder.                                                #
-# Versao    : 3.0                                                              #
+# Versao    : 4.0                                                              #
 # Data      : 13/06/2024                                                       #
 # Tested on : Linux/Windows10                                                  #
 # created by: Charli Castelli.                                                 #
@@ -58,7 +59,6 @@ banner = YELLOW + """
 print(banner)
 
 try:
-
     def texto():
         text = f"{iconSuccessGreen} Iniciando varredura no Host: http://{args.url}"
         print(f"{stop}")
@@ -74,26 +74,36 @@ try:
         directory_found = False
         if wordlist_file is not None:
             with open(wordlist_file, "r") as file:
-                for line in file:
+                lines = file.readlines()
+                total = len(lines)
+                space = ' ' * 30
+                for i, line in enumerate(lines, 1):
                     directory = line.strip()
                     url = f"{domain}/{directory}"
                     response = requests.head(f"http://{url}", headers=headers, timeout=5)
                     if response.status_code == 200:
-                        print(f"{iconSuccessGreen} http://{url: <35}", end="")
-                        print(BOLD + GREEN + f" [{response.status_code}]" + RESET)
+                        print(f"\r{iconSuccessGreen} http://{url: <35}", end="")
+                        print(BOLD + GREEN + f" [{response.status_code}] {space}" + RESET)
                         directory_found = True
                     elif response.status_code > 399 and response.status_code < 500 and response.status_code != 404:
-                        print(f"{iconSuccessYellow} http://{url: <35}", end="")
-                        print(BOLD + YELLOW + f" [{response.status_code}]" + RESET)
+                        print(f"\r{iconSuccessYellow} http://{url: <35}", end="")
+                        print(BOLD + YELLOW + f" [{response.status_code}] {space}" + RESET)
                         directory_found = True
                     elif response.status_code != 404:
-                        print(f"{iconSuccess} http://{url: <35}", end="")
-                        print(BOLD + BLUE + f" [{response.status_code}]" + RESET)
+                        print(f"\r{iconSuccess} http://{url: <35}", end="")
+                        print(BOLD + BLUE + f" [{response.status_code}] {space}" + RESET)
                         directory_found = True
+
+                    # # Atualiza a barra de progresso
+                    # progress = i / total
+                    # print(f'\rProgresso: {i}/{total} [{"#" * int(progress * 50):.<50}] {int(progress * 100)}%', end='')
+
+                    # Atualiza a barra de progresso
+                    print(f"\rProgresso: {i}/{total} ({i/total*100:.2f}%)", end="")
                     if delay:
                         time.sleep(delay)
         if not directory_found:
-            print(f"{iconError} Nenhum caminho foi encontrado.")
+            print(f"\r{iconError} Nenhum caminho foi encontrado.")
 
     def scan_files(domain, wordlist_file, file_extensions, delay):
         print()
@@ -103,27 +113,31 @@ try:
         directory_found = False
         if wordlist_file is not None:
             with open(wordlist_file, "r") as file:
-                for line in file:
+                lines = file.readlines()
+                total = len(lines)
+                for i, line in enumerate(lines, 1):
                     directory = line.strip()
                     for file_extension in file_extensions:
                         url = f"{domain}/{directory}{file_extension}"
                         response = requests.head(f"http://{url}", headers=headers, timeout=5)
                         if response.status_code == 200:
-                            print(f"{iconSuccessGreen} http://{url: <35}", end="")
+                            print(f"\r{iconSuccessGreen} http://{url: <35}", end="")
                             print(BOLD + GREEN + f" [{response.status_code}]" + RESET)
                             directory_found = True
                         elif response.status_code > 399 and response.status_code < 500 and response.status_code != 404:
-                            print(f"{iconSuccessYellow} http://{url: <35}", end="")
+                            print(f"\r{iconSuccessYellow} http://{url: <35}", end="")
                             print(BOLD + YELLOW + f" [{response.status_code}]" + RESET)
                             directory_found = True
                         elif response.status_code != 404:
-                            print(f"{iconSuccess} http://{url: <35}", end="")
+                            print(f"\r{iconSuccess} http://{url: <35}", end="")
                             print(BOLD + BLUE + f" [{response.status_code}]" + RESET)
                             directory_found = True
+                        # Atualiza a barra de progresso
+                        print(f"\rProgresso: {i}/{total} ({i/total*100:.2f}%)", end="")
                         if delay:
                             time.sleep(delay)
         if not directory_found:
-            print(f"{iconError} Nenhum arquivo com as extensões <{', '.join(file_extensions)}> encontrado.")
+            print(f"\r{iconError} Nenhum arquivo com as extensões <{', '.join(file_extensions)}> encontrado.")
 
     def scan_subdomains(domain, wordlist_file, delay=None):
         print()
